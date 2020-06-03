@@ -71,7 +71,7 @@
 		<div class="card">
 			<!-- /.card-header -->
 			<div class="card-body">
-				<a data-toggle="modal" data-target="#exampleModal" class="btn btn-primary">
+				<a data-toggle="modal" data-target="#exampleModal" class="btn btn-primary tambahKategori">
 					<i class="fas fa-user-plus">
 					</i> Tambah
 				</a>
@@ -119,8 +119,10 @@
 <script>
 	$(document).ready(function() {
 
+		var bu = '<?= base_url(); ?>';
 
-		$('.btn-primary').on('click', function() {
+		var url_form_ubah = bu + 'produk/ubah_produk_proses';
+		$('.tambahKategori').on('click', function() {
 			console.log("semangat");
 
 
@@ -263,15 +265,11 @@
 
 		$('body').on('click', '.btnEditAdmin', function() {
 
-			// console.log("kkk");return(false);
-			var user_id = $(this).data('user_id');
-			var nama_lengkap = $(this).data('nama_lengkap');
-			var username = $(this).data('username');
-			var password = $(this).data('password');
-			var email = $(this).data('email');
-			var alamat = $(this).data('alamat');
-			var level = $(this).data('level');
-
+			console.log("kkk");
+			// return(false);
+			var id_kategori = $(this).data('id_kategori');
+			var nama_kategori = $(this).data('nama_kategori');
+			var slug_kategori = $(this).data('slug_kategori');
 
 			$('#btnEdit').show();
 			$('#tambahUser').hide();
@@ -283,17 +281,59 @@
 			$('#exampleModal').modal('show');
 
 			// $('.btnEditAdmin').on('click', function() {
+			// console.log(bu)
 
-			$('#user_id').val(user_id);
-			$('#username').val(username);
-			$('#password').val(password);
-			$('#email').val(email);
-			$('#nama_lengkap').val(nama_lengkap);
-			$('#alamat').val(alamat);
+			$('#id_kategori').val(id_kategori);
+			$('#nama_kategori').val(nama_kategori);
+			$('#slug').val(slug_kategori);
 
+
+			$("#form").submit();
+			url_form = url_form_ubah;
 
 
 			// return false;
+		});
+
+		function cekSlug() {
+			var slug = $('#slug').val();
+			if (slug == '') {
+				validasi('#slug', false, 'Silahkan Isi Slug');
+				return false;
+			} else {
+				validasi('#slug', true);
+				return true;
+			}
+		}
+
+
+		$('#btnEdit').on('click', function() {
+
+			var slug = $('#slug').val();
+			var id_kategori = $('#id_kategori').val();
+			var nama_kategori = $('#nama_kategori').val();
+
+			// var _idTipeProduk = cekIdTipeProduk();
+			// var _idSpek = cekIdSpek();
+			// var _grade = cekSlug();
+			// console.log(id_kategori);
+			// return (false);
+			// _draft = 1;
+			// if (
+			// 	_idTipeProduk && _idSpek &&
+			// 	_grade &&
+			// 	_judul && _deskripsi &&
+			// 	_hargaAwal && _hargaPasaran &&
+			// 	_kelipatanBid && _maksimumBid &&
+			// 	_stok && _foto && _draft
+			// )
+			// {
+				$("#form").submit();
+				// console.log(_foto);
+				// return;
+				// console.log("draft");
+			// }
+			return false;
 		});
 
 
