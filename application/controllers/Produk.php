@@ -121,7 +121,7 @@ class Produk extends CI_Controller
 				'message' => $message,
 				'errorInputs' => $errorInputs
 			));
-		}
+	}
 	public function getAllUser()
 	{
 		// if (!$this->isLoggedInAdmin()) {
@@ -171,24 +171,20 @@ class Produk extends CI_Controller
 		echo json_encode($datatable);
 		exit();
 	}
-	public function hapusUser()
+	public function hapusKategori()
 	{
-		// if (!$this->isLoggedInAdmin()) {
-		// 	echo '403 Forbidden!';
-		// 	exit();
-		// }
-		$user_id = $this->input->post('user_id', true);
-		$data = $this->Model_User->getUserById($user_id);
+		$id_kategori = $this->input->post('id_kategori', true);
+		$data = $this->Model_Produk->getKategoriById($id_kategori);
 		// var_dump($data);die();
 		$status = false;
-		$message = 'Gagal menghapus User!';
+		$message = 'Gagal menghapus Kategori!';
 		if (count($data) == 0) {
-			$message .= '<br>Tidak terdapat admin yang dimaksud.';
+			$message .= '<br>Tidak terdapat Kategori yang dimaksud.';
 		} else {
-			$hasil = $this->Model_User->hapusUser($user_id);
+			$hasil = $this->Model_Produk->hapusKategori($id_kategori);
 			if ($hasil) {
 				$status = true;
-				$message = 'Berhasil menghapus User: <b>' . $data[0]->username . '</b>';
+				$message = 'Berhasil menghapus Kategori: <b>' . $data[0]->nama_kategori . '</b>';
 			} else {
 				$message .= 'Terjadi kesalahan. #ADM09A';
 			}
@@ -274,6 +270,59 @@ class Produk extends CI_Controller
 			$message = 'Berhasil Menambahkan Kategori ';
 		} else {
 			$message = 'Kategori Sudah Ada! ';
+		}
+
+		echo json_encode(array(
+			'status' => $status,
+			'message' => $message,
+			'errorInputs' => $errorInputs
+		));
+	}
+	public function edit_kategori()
+	{
+
+		$slug = $this->input->post('slug', TRUE);
+		$nama_kategori = $this->input->post('nama_kategori', TRUE);
+		$id_kategori = $this->input->post('id_kategori',
+			TRUE
+		);
+		// var_dump($alamat);die;
+
+
+		$message = 'Gagal menambahkan edit kategori ';
+		$errorInputs = array();
+		$status = true;
+
+		$in = array(
+			'nama_kategori' => $nama_kategori,
+			'slug_kategori' => $slug,
+		);
+		// var_dump($in);die;
+
+		$cek = $this->Model_Produk->cari_kategori_edit($nama_kategori,$id_kategori);
+		// var_dump($cek);die;
+
+		if ($cek >= 1) {
+			$status = false;
+			$errorInputs[] = array('#username', 'Username Sudah Ada!');
+			$message = 'Kategori Sudah Ada! ';
+		}
+		if (empty($nama_kategori)) {
+			$status = false;
+			$errorInputs[] = array('#username', 'Silahkan pilih username');
+		}
+		if (empty($slug)) {
+			$status = false;
+			$errorInputs[] = array('#password', 'Silahkan Masukan Password');
+		}
+
+		// var_dump($in);die();
+		if ($status) {
+			$this->Model_Produk->edit_kategori($in,$id_kategori);
+
+			$message = 'Berhasil mengedit kategori  ';
+		} else {
+			$message = 'Username Sudah Ada! ';
 		}
 
 		echo json_encode(array(

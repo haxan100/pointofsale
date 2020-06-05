@@ -160,5 +160,29 @@ class Model_Produk extends CI_Model
 		);
 	}
 
+	public function	cari_kategori_edit($nama_kategori, $id_kategori)
+	{
+		$this->db->where('id_kategori !=', $id_kategori);
+		$this->db->where('nama_kategori ', $nama_kategori);
+		return $this->db->get('kategori')->num_rows();
+		// var_dump($lastquery);die;
+	}
+	public function edit_kategori($in, $id_kategori)
+	{
+		$this->db->where('id_kategori', $id_kategori);
+
+		return $this->db->update('kategori', $in);
+	}
+	public function getKategoriById($id_kategori)
+	{
+		$this->db->where('id_kategori', $id_kategori);
+		return $this->db->get('kategori')->result();
+	}
+	public function hapusKategori($id_kategori)
+	{
+		$this->db->where('id_kategori', $id_kategori);
+		return $this->db->delete('kategori');
+	}
+
 
 }

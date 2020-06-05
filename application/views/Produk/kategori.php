@@ -225,17 +225,17 @@
 		});
 
 		$('body').on('click', '.btnHapus', function() {
-			var user_id = $(this).data('user_id');
-			var username = $(this).data('username');
-			var c = confirm('Apakah anda yakin akan menghapus User: "' + username + '" ?');
+			var id_kategori = $(this).data('id_kategori');
+			var nama_kategori = $(this).data('nama_kategori');
+			var c = confirm('Apakah anda yakin akan menghapus kategori: "' + nama_kategori + '" ?');
 			if (c == true) {
 				$.ajax({
-					url: '<?= base_url('user/hapusUser'); ?>',
+					url: '<?= base_url('Produk/hapusKategori'); ?>',
 					// url: bu + 'user/hapusUser',
 					dataType: 'json',
 					method: 'POST',
 					data: {
-						user_id: user_id
+						id_kategori: id_kategori
 					}
 				}).done(function(e) {
 					console.log(e);
@@ -312,30 +312,65 @@
 			var slug = $('#slug').val();
 			var id_kategori = $('#id_kategori').val();
 			var nama_kategori = $('#nama_kategori').val();
+			url_form = url_form_ubah;
+			if (slug == '') {
+				$('*[for="slug"] > small').html('Harap diisi!');
+				alert('harap isi slug!');
+			} else if (nama_kategori == '') {
+				$('*[for="nama_kategori"] > small').html('Harap diisi!');
+				alert('harap isi nama kategori!');
+			} else {
 
-			// var _idTipeProduk = cekIdTipeProduk();
-			// var _idSpek = cekIdSpek();
-			// var _grade = cekSlug();
-			// console.log(id_kategori);
-			// return (false);
-			// _draft = 1;
-			// if (
-			// 	_idTipeProduk && _idSpek &&
-			// 	_grade &&
-			// 	_judul && _deskripsi &&
-			// 	_hargaAwal && _hargaPasaran &&
-			// 	_kelipatanBid && _maksimumBid &&
-			// 	_stok && _foto && _draft
-			// )
-			// {
-				$("#form").submit();
-				// console.log(_foto);
-				// return;
-				// console.log("draft");
-			// }
-			return false;
+
+
+				$.ajax({
+					url: '<?= $bu ?>produk/edit_kategori ',
+					dataType: 'json',
+					method: 'POST',
+					data: {
+						slug: slug,
+						nama_kategori: nama_kategori,
+						id_kategori: id_kategori,
+					}
+				}).done(function(e) {
+					console.log('berhasil');
+					// console.log(e);
+					$('#slug').val('');
+					$('#nama_kategori').val('');
+					datatable.ajax.reload();
+					//$('body').removeClass('modal-open');$('.modal-backdrop').remove();
+					var alert = '';
+					if (e.status) {
+						notifikasi('#alertNotif', e.message, false);
+						$('#exampleModal').modal('hide');
+						datatable.ajax.reload();
+						// resetForm();
+					} else {
+						notifikasi('#alertNotif', e.message, true);
+						$('#exampleModal').modal('hide');
+
+						$.each(e.errorInputs, function(key, val) {
+							console.log(val[0], val[1]);
+							// validasi(val[0], false, val[1]);
+							$(val[0])
+								.parent()
+								.find('.input-group-text')
+								.addClass('form-control is-invalid');
+						});
+
+					}
+				}).fail(function(e) {
+					console.log(e);
+					// resetForm($('#exampleModal'));
+					$('#modalAdmin').modal('show');
+					notifikasi('#alertNotif', 'Terjadi kesalahan!', true);
+
+				});
+
+
+				return false;
+			}
 		});
-
 
 
 
