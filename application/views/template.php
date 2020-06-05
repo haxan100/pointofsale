@@ -364,9 +364,9 @@ $bu = base_url();
 										</a>
 									</li>
 									<li class="nav-item">
-										<a href="../forms/advanced.html" class="nav-link">
+										<a href="<?= $bu ?>produk/satuan" class="nav-link">
 											<i class="far fa-circle nav-icon"></i>
-											<p>Advanced Elements</p>
+											<p>Satuan</p>
 										</a>
 									</li>
 									<li class="nav-item">

@@ -183,6 +183,140 @@ class Model_Produk extends CI_Model
 		$this->db->where('id_kategori', $id_kategori);
 		return $this->db->delete('kategori');
 	}
+	public function countSatuan()
+	{
+		$query = $this->db->query('SELECT * FROM satuan');
+		// echo $query->num_rows();
+		$query->num_rows();
+		return ($query);
+	}
+	public function dt_satuan($post)
+	{
+		$from = 'satuan k';
+		// untuk sort
+		$columns = array(
+			
+			'id_satuan',
+			'nama_satuan',
+		);
 
+		// untuk search
+		$columnsSearch = array(
+			'id_satuan',
+			
+			'nama_satuan',
+		);
+
+		// custom SQL
+		$sql = "SELECT * FROM {$from} ";
+
+		$where = "";
+
+		$whereTemp = "";
+		if (isset($post['date']) && $post['date'] != '') {
+			$date = explode(' / ', $post['date']);
+			if (count($date) == 1) {
+				$whereTemp .= "(created_at LIKE '%" . $post['date'] . "%')";
+			} else {
+				// $whereTemp .= "(created_at BETWEEN '".$date[0]."' AND '".$date[1]."')";
+				$whereTemp .= "(date_format(created_at, \"%Y-%m-%d\") >='$date[0]' AND date_format(created_at, \"%Y-%m-%d\") <= '$date[1]')";
+			}
+		}
+		if ($whereTemp != '' && $where != '') $where .= " AND (" . $whereTemp . ")";
+		else if ($whereTemp != '') $where .= $whereTemp;
+
+		// search
+		if (isset($post['search']['value']) && $post['search']['value'] != '') {
+			$search = $post['search']['value'];
+			// create parameter pencarian kesemua kolom yang tertulis
+			// di $columns
+			$whereTemp = "";
+			for ($i = 0; $i < count($columnsSearch); $i++) {
+				$whereTemp .= $columnsSearch[$i] . ' LIKE "%' . $search . '%"';
+
+				// agar tidak menambahkan 'OR' diakhir Looping
+				if ($i < count($columnsSearch) - 1) {
+					$whereTemp .= ' OR ';
+				}
+			}
+			if ($where != '') $where .= " AND (" . $whereTemp . ")";
+			else $where .= $whereTemp;
+		}
+		if ($where != '') $sql .= ' WHERE (' . $where . ')';
+
+
+		//SORT Kolom
+		$sortColumn = isset($post['order'][0]['column']) ? $post['order'][0]['column'] : 1;
+		$sortDir    = isset($post['order'][0]['dir']) ? $post['order'][0]['dir'] : 'asc';
+
+		$sortColumn = $columns[$sortColumn - 1];
+
+		$sql .= " ORDER BY {$sortColumn} {$sortDir}";
+
+		// var_dump($sql);
+		
+		// var_dump($this->db->last_query());die();
+		$count = $this->db->query($sql);
+		// hitung semua data
+		$totaldata = $count->num_rows();
+		
+
+		// memberi Limit
+		$start  = isset($post['start']) ? $post['start'] : 0;
+		$length = isset($post['length']) ? $post['length'] : 10;
+
+		$sql .= " LIMIT {$start}, {$length}";
+
+
+		$data  = $this->db->query($sql);
+
+		return array(
+			'totalData' => $totaldata,
+			'data' => $data,
+		);
+	}
+	public function cari_satuan($nama_satuan)
+	{
+		
+		$this->db->where('nama_satuan', $nama_satuan);
+		return $this->db->get('satuan')->num_rows();
+		
+	}
+	public function tambah_satuan($in)
+	{
+
+		if ($this->db->insert('satuan', $in)) {
+			$status =  true;
+		} else {
+			var_dump($this->db->error());
+			die();
+			$status = false;
+		}
+		return $status;
+	}
+	public function getSatuanById($id_satuan)
+	{
+		$this->db->where('id_satuan', $id_satuan);
+		return $this->db->get('satuan')->result();
+	}
+	public function hapusSatuan($id_satuan)
+	{
+		$this->db->where('id_satuan', $id_satuan);
+		return $this->db->delete('satuan');
+	}
+	public function
+	cari_satuan_edit($nama_satuan, $id_satuan)
+	{
+		$this->db->where('id_satuan !=', $id_satuan);
+		$this->db->where('nama_satuan ', $nama_satuan);
+		return $this->db->get('satuan')->num_rows();
+		// var_dump($lastquery);die;
+	}
+	public function edit_satuan($in, $id_satuan)
+	{
+		$this->db->where('id_satuan', $id_satuan);
+
+		return $this->db->update('satuan', $in);
+	}
 
 }

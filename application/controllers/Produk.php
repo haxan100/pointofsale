@@ -62,115 +62,7 @@ class Produk extends CI_Controller
 
 		$this->template->load('template', 'produk/kategori',$data_user);
 	}
-	public function tambah_user()
-	{
 
-		$username = $this->input->post('username', TRUE);
-		$password = $this->input->post('password', TRUE);
-		$email = $this->input->post('email', TRUE);
-		$nama_lengkap = $this->input->post('nama_lengkap', TRUE);
-		$level = $this->input->post('level', TRUE);
-		$alamat = $this->input->post('alamat', TRUE);
-		// var_dump($alamat);die;
-
-
-		$message = 'Gagal menambahkan Admin Baru!<br>Silahkan lengkapi data yang diperlukan.';
-		$errorInputs = array();
-		$status = true;
-
-		$in = array(
-			'nama_lengkap' => $nama_lengkap,
-			'username' => $username,
-			'password' =>   $this->bizEncrypt($password),
-			'email' => $email,
-			'level' => $level,
-			'alamat' => $alamat,
-		);	
-		// var_dump($in);die;
-
-		$cek = $this->Model_User->cari_username($username);
-		// var_dump($cek);die;
-
-		if ($cek >= 1) {
-			$status = false;
-			$errorInputs[] = array('#username', 'Username Sudah Ada!');
-			$message = 'Username Sudah Ada! ';
-		}
-		if (empty($username)) {
-			$status = false;
-			$errorInputs[] = array('#username', 'Silahkan pilih username');
-		}
-		if (empty($password)) {
-			$status = false;
-			$errorInputs[] = array('#password', 'Silahkan Masukan Password');
-		}
-		$noRoleSelected = true;
-
-		// var_dump($in);die();
-		if ($status) {
-			$this->Model_User->tambah_user($in);	
-			
-			$message = 'Berhasil  ';
-				
-		} else {
-			$message = 'Username Sudah Ada! ';
-		}
-
-			echo json_encode(array(
-				'status' => $status,
-				'message' => $message,
-				'errorInputs' => $errorInputs
-			));
-	}
-	public function getAllUser()
-	{
-		// if (!$this->isLoggedInAdmin()) {
-		// 	echo '403 Forbidden!';
-		// 	exit();
-		// }
-		$dt = $this->Model_User->dt_user($_POST);
-		$datatable['draw']            = isset($_POST['draw']) ? $_POST['draw'] : 1;
-		$datatable['recordsTotal']    = $dt['totalData'];
-		$datatable['recordsFiltered'] = $dt['totalData'];
-		$datatable['data']            = array();
-
-		$start  = isset($_POST['start']) ? $_POST['start'] : 0;
-		$no = $start + 1;
-		foreach ($dt['data']->result() as $row) {
-			if( $row->level){
-				$level = "admin";
-			}else{
-				$level ="kasir";
-			}
-			$fields = array($no++);
-			// var_dump($row);die;
-			$fields[] = $row->username;
-			$fields[] = $row->nama_lengkap;
-			$fields[] = $row->email;
-			$fields[] = $row->alamat;
-			$fields[] = $level;
-			$fields[] = '
-        <button class="btn btn-warning my-1 btnEditAdmin  text-white" 
-					data-user_id="' . $row->user_id . '"
-					data-username="' . $row->username . '"
-					data-password="' . $this->bizDecrypt($row->password) . '"
-					data-email="' . $row->email . '"
-					data-nama_lengkap="' . $row->nama_lengkap . '"
-					data-alamat="' . $row->alamat . '"
-					data-level="' . $row->level . '"
-					
-        ><i class="far fa-edit"></i> Ubah</button>
-        <button class="btn btn-danger my-1 btnHapus text-white" 
-					data-user_id="' . $row->user_id . '" 
-					data-username="' . $row->username . '"
-        ><i class="fas fa-trash"></i> Hapus</button>
-        ';
-
-			$datatable['data'][] = $fields;
-		}
-		echo json_encode($datatable);
-		exit();
-	}
 	public function hapusKategori()
 	{
 		$id_kategori = $this->input->post('id_kategori', true);
@@ -323,6 +215,161 @@ class Produk extends CI_Controller
 			$message = 'Berhasil mengedit kategori  ';
 		} else {
 			$message = 'Username Sudah Ada! ';
+		}
+
+		echo json_encode(array(
+			'status' => $status,
+			'message' => $message,
+			'errorInputs' => $errorInputs
+		));
+	}
+	public function satuan()
+	{
+		cek_not_login();
+		$data_user['countSatuan'] = $this->Model_Produk->countSatuan()->num_rows();
+		// var_dump($data_user);die;
+
+		$this->template->load('template', 'produk/satuan', $data_user);
+	}
+	public function getAllSatuan()
+	{
+		$dt = $this->Model_Produk->dt_satuan($_POST);
+		$datatable['draw']            = isset($_POST['draw']) ? $_POST['draw'] : 1;
+		$datatable['recordsTotal']    = $dt['totalData'];
+		$datatable['recordsFiltered'] = $dt['totalData'];
+		$datatable['data']            = array();
+
+		$start  = isset($_POST['start']) ? $_POST['start'] : 0;
+		$no = $start + 1;
+		foreach ($dt['data']->result() as $row) {
+
+			$fields = array($no++);
+			// var_dump($row);die;
+			$fields[] = $row->nama_satuan;
+			$fields[] = '
+        <button class="btn btn-warning my-1 btnEditAdmin  text-white" 
+					data-id_satuan="' . $row->id_satuan . '"
+					data-nama_satuan="' . $row->nama_satuan . '"
+					
+        ><i class="far fa-edit"></i> Ubah</button>
+        <button class="btn btn-danger my-1 btnHapus text-white" 
+					data-id_satuan="' . $row->id_satuan . '" 
+					data-nama_satuan="' . $row->nama_satuan . '"
+        ><i class="fas fa-trash"></i> Hapus</button>
+        ';
+
+			$datatable['data'][] = $fields;
+		}
+		echo json_encode($datatable);
+		exit();
+	}
+	public function tambah_satuan()
+	{
+
+		$nama_satuan = $this->input->post('nama_satuan', TRUE);
+		
+
+		$message = 'Gagal menambahkan Satuan  Baru!<br>Silahkan lengkapi data yang diperlukan.';
+		$errorInputs = array();
+		$status = true;
+
+		$in = array(
+			'nama_satuan' => $nama_satuan,
+		);
+		$cek = $this->Model_Produk->cari_satuan($nama_satuan);
+
+		if ($cek >= 1) {
+			$status = false;
+			$errorInputs[] = array('#satuan', 'Satuan Sudah Ada!');
+			$message = 'Sauan Sudah Ada! ';
+		}
+		if (empty($nama_satuan)) {
+			$status = false;
+			$errorInputs[] = array('#nama_satuan', 'Silahkan pilih nama satuan');
+		}
+
+		// var_dump($in);die();
+		if ($status) {
+			$this->Model_Produk->tambah_satuan($in);
+
+			$message = 'Berhasil Menambahkan Satuan ';
+		} else {
+			$message = 'satuan Sudah Ada! ';
+		}
+
+		echo json_encode(array(
+			'status' => $status,
+			'message' => $message,
+			'errorInputs' => $errorInputs
+		));
+	}
+	public function hapusSatuan()
+	{
+		$id_satuan = $this->input->post('id_satuan', true);
+		$data = $this->Model_Produk->getSatuanById($id_satuan);
+		// var_dump($data);die();
+		$status = false;
+		$message = 'Gagal menghapus Satuan!';
+		if (count($data) == 0) {
+			$message .= '<br>Tidak terdapat Satuan yang dimaksud.';
+		} else {
+			$hasil = $this->Model_Produk->hapusSatuan($id_satuan);
+			if ($hasil) {
+				$status = true;
+				$message = 'Berhasil menghapus Satuan: <b>' . $data[0]->nama_satuan . '</b>';
+			} else {
+				$message .= 'Terjadi kesalahan. #ADM10A';
+			}
+		}
+		echo json_encode(array(
+			'status' => $status,
+			'message' => $message,
+		));
+	}
+	public function edit_satuan()
+	{
+
+		$nama_satuan = $this->input->post('nama_satuan', TRUE);
+		$id_satuan = $this->input->post(
+			'id_satuan',
+			TRUE
+		);
+		// var_dump($nama_satuan,$id_satuan);die;
+
+
+		$message = 'Gagal menambahkan edit kategori ';
+		$errorInputs = array();
+		$status = true;
+
+		$in = array(
+				'nama_satuan' => $nama_satuan,
+			);
+		// var_dump($in);die;
+
+		$cek = $this->Model_Produk->cari_satuan_edit($nama_satuan, $id_satuan);
+		// var_dump($cek);die;
+
+		if ($cek >= 1) {
+			$status = false;
+			$errorInputs[] = array('#nama_satuan', 'nama_satuan Sudah Ada!');
+			$message = 'Satuan Sudah Ada! ';
+		}
+		if (empty($nama_satuan)) {
+			$status = false;
+			$errorInputs[] = array('#satuan', 'Silahkan pilih satuan');
+		}
+		if (empty($nama_satuan)) {
+			$status = false;
+			$errorInputs[] = array('#satuan', 'Silahkan Masukan satuan');
+		}
+
+		// var_dump($in);die();
+		if ($status) {
+			$this->Model_Produk->edit_satuan($in, $id_satuan);
+
+			$message = 'Berhasil mengedit satuan  ';
+		} else {
+			$message = 'satuan Sudah Ada! ';
 		}
 
 		echo json_encode(array(
