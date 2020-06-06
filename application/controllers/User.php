@@ -121,7 +121,7 @@ class User extends CI_Controller
 				'message' => $message,
 				'errorInputs' => $errorInputs
 			));
-		}
+	}
 	public function getAllUser()
 	{
 		// if (!$this->isLoggedInAdmin()) {
@@ -196,6 +196,203 @@ class User extends CI_Controller
 		echo json_encode(array(
 			'status' => $status,
 			'message' => $message,
+		));
+	}
+	public function suplier()
+	{
+		cek_not_login();
+		$this->load->model('Model_User');
+		$data_user['data_user_all'] = $this->Model_User->getAll()->result();
+
+		$data_user['count'] = $this->Model_User->countSuplier()->num_rows();
+		// var_dump($data_user);die;
+
+		$this->template->load('template', 'supplier/supplier_data', $data_user);
+	}
+	public function getAllSuplier()
+	{
+		// if (!$this->isLoggedInAdmin()) {
+		// 	echo '403 Forbidden!';
+		// 	exit();
+		// }
+		$dt = $this->Model_User->dt_suplier($_POST);
+		$datatable['draw']            = isset($_POST['draw']) ? $_POST['draw'] : 1;
+		$datatable['recordsTotal']    = $dt['totalData'];
+		$datatable['recordsFiltered'] = $dt['totalData'];
+		$datatable['data']            = array();
+
+		$start  = isset($_POST['start']) ? $_POST['start'] : 0;
+		$no = $start + 1;
+		foreach ($dt['data']->result() as $row) {
+
+			if ($row->status_suplier) {
+				$status = "aktiv";
+			} else {
+				$status = "tidak aktiv";
+			}
+			$fields = array($no++);
+			// var_dump($row);die;
+			$fields[] = $row->nama_suplier;
+			$fields[] = $row->alamat_suplier;
+			$fields[] = $row->no_telp_suplier;
+			$fields[] = $status;
+			$fields[] = '
+        <button class="btn btn-warning my-1 btnEditAdmin  text-white" 
+					data-suplier_id="' . $row->suplier_id . '"
+					data-nama_suplier="' . $row->nama_suplier . '"
+					data-no_telp_suplier="' . $row->no_telp_suplier . '"
+					data-status_suplier="' . $row->status_suplier . '"
+					data-alamat_suplier="' . $row->alamat_suplier . '"
+					
+        ><i class="far fa-edit"></i> Ubah</button>
+        <button class="btn btn-danger my-1 btnHapus text-white" 
+					data-suplier_id="' . $row->suplier_id . '"
+					data-nama_suplier="' . $row->nama_suplier . '"
+        ><i class="fas fa-trash"></i> Hapus</button>
+        ';
+
+			$datatable['data'][] = $fields;
+		}
+		echo json_encode($datatable);
+		exit();
+	}
+	public function tambah_suplier()
+	{
+
+		$nama_suplier = $this->input->post('nama_suplier', TRUE);
+		$status = $this->input->post('status',
+			TRUE
+		);
+		$no_telp = $this->input->post('no_telp', TRUE);
+		$alamat = $this->input->post('alamat', TRUE);
+		// var_dump($alamat);die;
+
+
+		$message = 'Gagal menambahkan Suplier Baru!<br>Silahkan lengkapi data yang diperlukan.';
+		$errorInputs = array();
+		$status = true;
+
+		$in = array(
+			'nama_suplier' => $nama_suplier,
+			'status_suplier' => $status,
+			'no_telp_suplier' => $no_telp,
+			'alamat_suplier' => $alamat,
+		);
+		// var_dump($in);die;
+
+		$cek = $this->Model_User->cari_suplier($nama_suplier, $no_telp);
+		// var_dump($cek);die;
+
+		if ($cek >= 1) {
+			$status = false;
+			$errorInputs[] = array('#suplier', 'suplier Sudah Ada!');
+			$message = 'Suplier Sudah Ada! ';
+		}
+		if (empty($nama_suplier)) {
+			$status = false;
+			$errorInputs[] = array('#nama_suplier', 'Silahkan isi nama suplier');
+		}
+		if (empty($no_telp)) {
+			$status = false;
+			$errorInputs[] = array('#no_telp', 'Silahkan Masukan nomor telpon');
+		}
+
+		// var_dump($in);die();
+		if ($status) {
+			$this->Model_User->tambah_suplier($in);
+
+			$message = 'Berhasil menambah suplier ';
+		} else {
+			$message = 'Username Sudah Ada! ';
+		}
+
+		echo json_encode(array(
+			'status' => $status,
+			'message' => $message,
+			'errorInputs' => $errorInputs
+		));
+	}
+	public function hapusSuplier()
+	{
+		// if (!$this->isLoggedInAdmin()) {
+		// 	echo '403 Forbidden!';
+		// 	exit();
+		// }
+		$suplier_id = $this->input->post('suplier_id', true);
+		$data = $this->Model_User->getSuplierById($suplier_id);
+		// var_dump($data);die();
+		$status = false;
+		$message = 'Gagal menghapus Suplier!';
+		if (count($data) == 0) {
+			$message .= '<br>Tidak terdapat Suplier yang dimaksud.';
+		} else {
+			$hasil = $this->Model_User->hapusSuplier($suplier_id);
+			if ($hasil) {
+				$status = true;
+				$message = 'Berhasil menghapus Suplier: <b>' . $data[0]->nama_suplier . '</b>';
+			} else {
+				$message .= 'Terjadi kesalahan. #ADM09A';
+			}
+		}
+		echo json_encode(array(
+			'status' => $status,
+			'message' => $message,
+		));
+	}
+	public function edit_suplier()
+	{
+
+		$suplier_id = $this->input->post('suplier_id', TRUE);
+		$nama_suplier = $this->input->post('nama_suplier', TRUE);
+		$alamat = $this->input->post('alamat', TRUE);
+		$status_suplier = $this->input->post('status', TRUE);
+		$no_telpon = $this->input->post('no_telpon', TRUE);
+		// var_dump($status_suplier);die;
+		$message = 'Gagal menambahkan edit Suplier ';
+		$errorInputs = array();
+		$status = true;
+		$now= date('Y-m-d H:i:s');
+
+		$in = array(
+				'nama_suplier' => $nama_suplier,
+				'alamat_suplier' => $alamat,
+				'status_suplier' => $status_suplier,
+				'no_telp_suplier' => $no_telpon,
+				'updated' => date('Y-m-d H:i:s'),
+
+			);
+		// var_dump($in);die;
+
+		$cek = $this->Model_User->cari_suplier_edit($nama_suplier, $no_telpon, $suplier_id);
+		// var_dump($cek);die;
+
+		if ($cek >= 1) {
+			$status = false;
+			$errorInputs[] = array('#username', 'Username Sudah Ada!');
+			$message = 'Suplier Sudah Ada! ';
+		}
+		if (empty($nama_suplier)) {
+			$status = false;
+			$errorInputs[] = array('#username', 'Silahkan pilih username');
+		}
+		if (empty($no_telpon)) {
+			$status = false;
+			$errorInputs[] = array('#password', 'Silahkan Masukan Password');
+		}
+
+		// var_dump($in);die();
+		if ($status) {
+			$this->Model_User->edit_suplier($in, $suplier_id);
+
+			$message = 'Berhasil mengedit Suplier  ';
+		} else {
+			$message = 'Suplier Sudah Ada! ';
+		}
+
+		echo json_encode(array(
+			'status' => $status,
+			'message' => $message,
+			'errorInputs' => $errorInputs
 		));
 	}
 

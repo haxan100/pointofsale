@@ -59,7 +59,7 @@
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="control-label">Password</label>
+								<label class="control-label">Level</label>
 								<div>
 									<select name="level" id="level" class="btn btn-primary m-t-20 btn-info waves-effect waves-light ">
 										<option value="default" desable>Pilih Level</option>
