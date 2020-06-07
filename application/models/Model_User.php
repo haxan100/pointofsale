@@ -297,6 +297,11 @@ class Model_User extends CI_Model
 
 		return $this->db->update('suplier', $in);
 	}
+	function get_suplier()
+	{
+		$query = $this->db->get('suplier');
+		return $query;
+	}
 
 
 }

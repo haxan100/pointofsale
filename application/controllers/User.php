@@ -352,13 +352,15 @@ class User extends CI_Controller
 		$errorInputs = array();
 		$status = true;
 		$now= date('Y-m-d H:i:s');
+		// var_dump($now);die;
+
 
 		$in = array(
 				'nama_suplier' => $nama_suplier,
 				'alamat_suplier' => $alamat,
 				'status_suplier' => $status_suplier,
 				'no_telp_suplier' => $no_telpon,
-				'updated' => date('Y-m-d H:i:s'),
+				'updated' => date('Y-m-d h:i:s'),
 
 			);
 		// var_dump($in);die;

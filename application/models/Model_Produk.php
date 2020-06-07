@@ -318,5 +318,176 @@ class Model_Produk extends CI_Model
 
 		return $this->db->update('satuan', $in);
 	}
+	public function countProduk()
+	{
+		$query = $this->db->query('SELECT * FROM produk');
+		// echo $query->num_rows();
+		$query->num_rows();
+		return ($query);
+	}
+	function get_category()
+	{
+		$query = $this->db->get('kategori');
+		return $query;
+	}
+	public function dt_produk($post)
+	{
+		$from = 'produk k';
+		// untuk sort
+		$columns = array(
+			'kode_produk',
+			'nama_produk',
+			'harga_produk',
+			'gambar',
+			'deskripsi',
+			'kategori',
+			'suplier',
+			'status',
+			'stok',
+		);
 
+		// untuk search
+		$columnsSearch = array(
+			'kode_produk',
+			'nama_produk',
+			'harga_produk',
+			'gambar',
+			'deskripsi',
+			'kategori',
+			'suplier',
+			'status',
+			'stok',
+		);
+
+		// custom SQL
+		$sql = "SELECT * FROM {$from} ";
+
+		$where = "";
+
+		$whereTemp = "";
+		if (isset($post['date']) && $post['date'] != '') {
+			$date = explode(' / ', $post['date']);
+			if (count($date) == 1) {
+				$whereTemp .= "(created_at LIKE '%" . $post['date'] . "%')";
+			} else {
+				// $whereTemp .= "(created_at BETWEEN '".$date[0]."' AND '".$date[1]."')";
+				$whereTemp .= "(date_format(created_at, \"%Y-%m-%d\") >='$date[0]' AND date_format(created_at, \"%Y-%m-%d\") <= '$date[1]')";
+			}
+		}
+		if ($whereTemp != '' && $where != '') $where .= " AND (" . $whereTemp . ")";
+		else if ($whereTemp != '') $where .= $whereTemp;
+
+		// search
+		if (isset($post['search']['value']) && $post['search']['value'] != '') {
+			$search = $post['search']['value'];
+			// create parameter pencarian kesemua kolom yang tertulis
+			// di $columns
+			$whereTemp = "";
+			for ($i = 0; $i < count($columnsSearch); $i++) {
+				$whereTemp .= $columnsSearch[$i] . ' LIKE "%' . $search . '%"';
+
+				// agar tidak menambahkan 'OR' diakhir Looping
+				if ($i < count($columnsSearch) - 1) {
+					$whereTemp .= ' OR ';
+				}
+			}
+			if ($where != '') $where .= " AND (" . $whereTemp . ")";
+			else $where .= $whereTemp;
+		}
+		if ($where != '') $sql .= ' WHERE (' . $where . ')';
+
+
+		//SORT Kolom
+		$sortColumn = isset($post['order'][0]['column']) ? $post['order'][0]['column'] : 1;
+		$sortDir    = isset($post['order'][0]['dir']) ? $post['order'][0]['dir'] : 'asc';
+
+		$sortColumn = $columns[$sortColumn - 1];
+
+		$sql .= " ORDER BY {$sortColumn} {$sortDir}";
+
+		$count = $this->db->query($sql);
+		// hitung semua data
+		$totaldata = $count->num_rows();
+
+		// memberi Limit
+		$start  = isset($post['start']) ? $post['start'] : 0;
+		$length = isset($post['length']) ? $post['length'] : 10;
+
+
+		$sql .= " LIMIT {$start}, {$length}";
+
+
+		$data  = $this->db->query($sql);
+
+		return array(
+			'totalData' => $totaldata,
+			'data' => $data,
+		);
+	}
+	public function
+	cari_cek_produk($nama_produk, $kategori)
+	{
+
+		$this->db->where('nama_produk', $nama_produk);
+		$this->db->where('kategori', $kategori);
+		return $this->db->get('produk')->num_rows();
+	}
+	public function select_max()
+	{
+		$this->db->select_max('kode_produk');
+		return $this->db->get('produk');
+	}
+	public function
+	tambah_produk($nama_produk, $harga_produk, $kategori, $suplier, $stok,$status)
+	{
+
+		$kode_produk = $this->select_max()->result()[0]->kode_produk == 'NULL'
+		? 1
+			: substr($this->select_max()->result()[0]->kode_produk, 3, 9);
+			
+			if (!$kode_produk) $kode_produk = 0;
+			$kode_produk = intval(preg_replace('/\D/', '', $kode_produk) + 1);
+			$newID = 'A' . date('y');
+
+
+			if ($kode_produk < 100000000) $newID .= '0';
+			if ($kode_produk < 10000000) $newID .= '0';
+			if ($kode_produk < 1000000) $newID .= '0';
+			if ($kode_produk < 100000) $newID .= '0';
+			if ($kode_produk < 10000) $newID .= '0';
+			if ($kode_produk < 1000) $newID .= '0';
+			if ($kode_produk < 100) $newID .= '0';
+			if ($kode_produk < 10) $newID .= '0';
+			$newID .= $kode_produk;
+
+			var_dump($newID);die;
+
+
+		$data = array(
+
+			'kode_produk' => $newID,
+			'nama_produk' => $nama_produk,
+			'harga_produk' => $harga_produk,
+			'status' => $status,
+
+			'kategori' => $kategori,
+			'suplier' => $suplier,
+			'stok' => $stok,
+			'created' => date("Y-m-d"),
+		);
+			// var_dump($data);die();
+
+
+		if ($this->db->insert('produk', $data)) {
+			$data['sukses'] = true;
+		} else {
+			$data['sukses'] = false;
+
+			// var_dump($this->db->error());die();
+
+		}
+
+		return $data;
+
+	}
 }

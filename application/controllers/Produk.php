@@ -378,6 +378,120 @@ class Produk extends CI_Controller
 			'errorInputs' => $errorInputs
 		));
 	}
+	public function index()
+	{
+		$data_user['kategori'] = $this->Model_Produk->get_category()->result();
+
+		$data_user['suplier'] = $this->Model_User->get_suplier()->result();
+
+		// var_dump($data_user['kategori']);die;
+		cek_not_login();
+		$data_user['countKategori'] = $this->Model_Produk->countProduk()->num_rows();
+
+		$this->template->load('template', 'produk/produk', $data_user);
+	}
+		public function getAllProduk()
+	{
+		$dt = $this->Model_Produk->dt_produk($_POST);
+		$datatable['draw']            = isset($_POST['draw']) ? $_POST['draw'] : 1;
+		$datatable['recordsTotal']    = $dt['totalData'];
+		$datatable['recordsFiltered'] = $dt['totalData'];
+		$datatable['data']            = array();
+
+		$start  = isset($_POST['start']) ? $_POST['start'] : 0;
+		$no = $start + 1;
+		foreach ($dt['data']->result() as $row) {
+			
+			$fields = array($no++);
+			// var_dump($row);die;
+			$fields[] = $row->kode_produk;
+			$fields[] = $row->nama_produk;
+			$fields[] = $row->harga_produk;
+			$fields[] = $row->kategori;
+			$fields[] = $row->status;
+			$fields[] = $row->stok;
+
+			$fields[] = '
+        <button class="btn btn-warning my-1 btnEditAdmin  text-white" 
+			data-kode_produk="' . $row->kode_produk . '"
+			data-nama_produk="' . $row->nama_produk . '"
+			data-harga="' . $row->harga_produk . '"
+			data-kategori="' . $row->kategori . '"
+			data-status="' . $row->status . '"
+			data-stok="' . $row->stok . '"
+					
+        ><i class="far fa-edit"></i> Ubah</button>
+        <button class="btn btn-danger my-1 btnHapus text-white" 
+			data-kode_produk="' . $row->kode_produk . '"
+			data-nama_produk="' . $row->nama_produk . '"
+        ><i class="fas fa-trash"></i> Hapus</button>
+        ';
+
+			$datatable['data'][] = $fields;
+		}
+		echo json_encode($datatable);
+		exit();
+	}
+	public function tambah_produk()
+	{
+
+		$nama_produk = $this->input->post('nama_produk', TRUE);
+		$harga_produk = $this->input->post('harga_produk', TRUE);
+
+		$kategori = $this->input->post('kategori', TRUE);
+		$suplier = $this->input->post('suplier', TRUE);
+		$stok = $this->input->post('stok', TRUE);
+		$status = $this->input->post('status', TRUE);
+		// var_dump($alamat);die;
+
+		$message = 'Gagal menambahkan Produk Baru!<br>Silahkan lengkapi data yang diperlukan.';
+		$errorInputs = array();
+		$status = true;
+
+		$in = array(
+			'nama_produk' => $nama_produk,
+			'harga_produk' => $harga_produk,
+			'status' => $status,
+
+			'kategori' => $kategori,
+			'suplier' => $suplier,
+			'stok' => $stok,
+			'created' => date("Y-m-d"),
+		);
+		// var_dump($in);die;
+
+		$cek = $this->Model_Produk->cari_cek_produk($nama_produk, $kategori);
+		// var_dump($cek);die;
+
+		if ($cek >= 1) {
+			$status = false;
+			$errorInputs[] = array('#slug', 'Kategori Sudah Ada!');
+			$message = 'Produk Sudah Ada! ';
+		}
+		if (empty($nama_produk)) {
+			$status = false;
+			$errorInputs[] = array('#nama_kategori', 'Silahkan pilih nama produk');
+		}
+		if (empty($kategori)) {
+			$status = false;
+			$errorInputs[] = array('#slug', 'Silahkan Masukan Slug ');
+		}
+
+		// var_dump($in);die();
+		if ($status) {
+			$this->Model_Produk->tambah_produk($nama_produk,$harga_produk,$kategori,$suplier,$stok,$status);
+
+			$message = 'Berhasil Menambahkan Produk ';
+		} else {
+			$message = 'Kategori Sudah Ada! ';
+		}
+
+		echo json_encode(array(
+			'status' => $status,
+			'message' => $message,
+			'errorInputs' => $errorInputs
+		));
+	}
 
 	}
 
